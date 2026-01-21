@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Argilers Digital Card</title>
+    <title>Socio Digital - Argilers</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f2e9dc; color: #2d2926; margin: 0; }
         .diamond-logo { transform: rotate(45deg); }
         .diamond-inner { transform: rotate(-45deg); }
+        .placeholder-text { opacity: 0.1; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -25,12 +26,12 @@
                 </div>
             </div>
             
-            <p id="ui-title" class="text-[10px] text-blue-700 font-black uppercase tracking-[0.3em] mb-2">MIEMBRO</p>
-            <h1 id="ui-name" class="text-4xl font-black uppercase tracking-tighter leading-none mb-10">...</h1>
+            <p id="ui-title" class="text-[10px] text-blue-700 font-black uppercase tracking-[0.3em] mb-2">ESPERANDO QR</p>
+            <h1 id="ui-name" class="text-4xl font-black uppercase tracking-tighter leading-none mb-10 placeholder-text">SIN DATOS</h1>
             
             <div class="w-full space-y-4 mb-8">
-                <a id="ui-call" href="#" class="block w-full bg-[#2d2926] text-[#e9decb] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg">Llamar Ahora</a>
-                <a id="ui-mail" href="#" class="block w-full bg-white text-[#2d2926] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] border border-[#2d2926]/10 shadow-sm">Enviar Email</a>
+                <a id="ui-call" href="#" class="block w-full bg-[#2d2926] text-[#e9decb] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg opacity-20 pointer-events-none">Llamar Ahora</a>
+                <a id="ui-mail" href="#" class="block w-full bg-white text-[#2d2926] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] border border-[#2d2926]/10 shadow-sm opacity-20 pointer-events-none">Enviar Email</a>
             </div>
 
             <div class="w-full bg-white/40 backdrop-blur-sm rounded-3xl p-6 mt-auto border border-white/60">
@@ -38,17 +39,14 @@
                 <div class="text-left space-y-4">
                     <div>
                         <p class="text-[8px] font-black uppercase opacity-30">Móvil</p>
-                        <p id="ui-tel" class="text-sm font-bold">-</p>
+                        <p id="ui-tel" class="text-sm font-bold opacity-20">---</p>
                     </div>
                     <div>
                         <p class="text-[8px] font-black uppercase opacity-30">Email</p>
-                        <p id="ui-email" class="text-sm font-bold truncate">-</p>
+                        <p id="ui-email" class="text-sm font-bold truncate opacity-20">---</p>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="h-8 flex justify-center items-center">
-            <div class="w-24 h-1.5 bg-[#2d2926]/10 rounded-full"></div>
         </div>
     </div>
 
@@ -58,48 +56,41 @@
                 return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
                     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                 }).join(''));
-            } catch (e) {
-                console.error("Error decoding UTF-8 base64", e);
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
         function initCard() {
             try {
-                // Buscamos tanto en el hash (#) como en la búsqueda (?) por compatibilidad
-                const params = new URLSearchParams(window.location.search);
-                const hash = window.location.hash;
+                const urlParams = new URLSearchParams(window.location.search);
+                let base64 = urlParams.get('v');
                 
-                let data = {
-                    n: 'DAVID',
-                    a: 'ARAUJO',
-                    t: 'SOCI N° 1 • ARGILERS',
-                    p: '687 932 335',
-                    e: 'd.araujots@hotmail.com'
-                };
-
-                let base64 = params.get('v');
-                if (!base64 && hash.includes('v=')) {
-                    base64 = hash.split('v=')[1];
+                if (!base64 && window.location.hash.includes('v=')) {
+                    base64 = window.location.hash.split('v=')[1].split('&')[0];
                 }
 
                 if (base64) {
                     const decoded = safeAtob(base64);
-                    if (decoded) data = JSON.parse(decoded);
+                    if (decoded) {
+                        const data = JSON.parse(decoded);
+                        document.getElementById('ui-title').innerText = data.t || 'SOCIO';
+                        document.getElementById('ui-name').innerHTML = (data.n || '') + '<br>' + (data.a || '');
+                        document.getElementById('ui-name').classList.remove('placeholder-text');
+                        document.getElementById('ui-tel').innerText = data.p || '-';
+                        document.getElementById('ui-tel').classList.remove('opacity-20');
+                        document.getElementById('ui-email').innerText = data.e || '-';
+                        document.getElementById('ui-email').classList.remove('opacity-20');
+                        
+                        const callBtn = document.getElementById('ui-call');
+                        callBtn.href = 'tel:' + (data.p ? data.p.replace(/\s/g, '') : '');
+                        callBtn.classList.remove('opacity-20', 'pointer-events-none');
+                        
+                        const mailBtn = document.getElementById('ui-mail');
+                        mailBtn.href = 'mailto:' + (data.e || '');
+                        mailBtn.classList.remove('opacity-20', 'pointer-events-none');
+                    }
                 }
-
-                document.getElementById('ui-title').innerText = data.t || 'SOCIO';
-                document.getElementById('ui-name').innerHTML = (data.n || '') + '<br>' + (data.a || '');
-                document.getElementById('ui-tel').innerText = data.p || '-';
-                document.getElementById('ui-email').innerText = data.e || '-';
-                document.getElementById('ui-call').href = 'tel:' + (data.p ? data.p.replace(/\s/g, '') : '');
-                document.getElementById('ui-mail').href = 'mailto:' + (data.e || '');
-                
-            } catch (e) {
-                console.error("Error loading card data", e);
-            }
+            } catch (e) { console.error(e); }
         }
-        window.onhashchange = initCard;
         window.onload = initCard;
     </script>
 </body>
