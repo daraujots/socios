@@ -66,7 +66,10 @@
 
         function initCard() {
             try {
+                // Buscamos tanto en el hash (#) como en la búsqueda (?) por compatibilidad
+                const params = new URLSearchParams(window.location.search);
                 const hash = window.location.hash;
+                
                 let data = {
                     n: 'DAVID',
                     a: 'ARAUJO',
@@ -75,8 +78,12 @@
                     e: 'd.araujots@hotmail.com'
                 };
 
-                if (hash && hash.includes('v=')) {
-                    const base64 = hash.split('v=')[1];
+                let base64 = params.get('v');
+                if (!base64 && hash.includes('v=')) {
+                    base64 = hash.split('v=')[1];
+                }
+
+                if (base64) {
                     const decoded = safeAtob(base64);
                     if (decoded) data = JSON.parse(decoded);
                 }
