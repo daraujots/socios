@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socio DAVID - Argilers Trial Club</title>
+    <title>Argilers Digital Card</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f2e9dc; color: #2d2926; }
+        body { font-family: 'Inter', sans-serif; background-color: #f2e9dc; color: #2d2926; margin: 0; }
         .diamond-logo { transform: rotate(45deg); }
         .diamond-inner { transform: rotate(-45deg); }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="max-w-sm w-full bg-[#e9decb] rounded-[60px] border-[12px] border-[#2d2926] shadow-2xl overflow-hidden flex flex-col min-h-[700px]">
+    <div id="app" class="max-w-sm w-full bg-[#e9decb] rounded-[60px] border-[12px] border-[#2d2926] shadow-2xl overflow-hidden flex flex-col min-h-[720px]">
         <div class="flex-1 px-8 py-12 flex flex-col items-center text-center">
             <div class="mb-10 relative">
                 <div class="w-32 h-32 bg-[#2d2926] diamond-logo flex items-center justify-center shadow-xl border-4 border-[#e9decb]">
@@ -25,24 +25,24 @@
                 </div>
             </div>
             
-            <p class="text-[10px] text-blue-700 font-black uppercase tracking-[0.3em] mb-2">SOCI N° 1 • ARGILERS</p>
-            <h1 class="text-4xl font-black uppercase tracking-tighter leading-none mb-10">DAVID<br>ARAUJO MONSORIU</h1>
+            <p id="ui-title" class="text-[10px] text-blue-700 font-black uppercase tracking-[0.3em] mb-2">MIEMBRO</p>
+            <h1 id="ui-name" class="text-4xl font-black uppercase tracking-tighter leading-none mb-10">...</h1>
             
             <div class="w-full space-y-4 mb-8">
-                <a href="tel:687932335" class="block w-full bg-[#2d2926] text-[#e9decb] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg">Llamar Ahora</a>
-                <a href="mailto:d.araujots@hotmail.com" class="block w-full bg-white text-[#2d2926] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] border border-[#2d2926]/10 shadow-sm">Enviar Email</a>
+                <a id="ui-call" href="#" class="block w-full bg-[#2d2926] text-[#e9decb] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg">Llamar Ahora</a>
+                <a id="ui-mail" href="#" class="block w-full bg-white text-[#2d2926] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] border border-[#2d2926]/10 shadow-sm">Enviar Email</a>
             </div>
 
             <div class="w-full bg-white/40 backdrop-blur-sm rounded-3xl p-6 mt-auto border border-white/60">
-                <p class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-4">Contacto Directo</p>
+                <p class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-4">Datos de Socio</p>
                 <div class="text-left space-y-4">
                     <div>
                         <p class="text-[8px] font-black uppercase opacity-30">Móvil</p>
-                        <p class="text-sm font-bold">687 932 335</p>
+                        <p id="ui-tel" class="text-sm font-bold">-</p>
                     </div>
                     <div>
                         <p class="text-[8px] font-black uppercase opacity-30">Email</p>
-                        <p class="text-sm font-bold truncate">d.araujots@hotmail.com</p>
+                        <p id="ui-email" class="text-sm font-bold truncate">-</p>
                     </div>
                 </div>
             </div>
@@ -51,5 +51,49 @@
             <div class="w-24 h-1.5 bg-[#2d2926]/10 rounded-full"></div>
         </div>
     </div>
+
+    <script>
+        function safeAtob(str) {
+            try {
+                return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+            } catch (e) {
+                console.error("Error decoding UTF-8 base64", e);
+                return null;
+            }
+        }
+
+        function initCard() {
+            try {
+                const hash = window.location.hash;
+                let data = {
+                    n: 'DAVID',
+                    a: 'ARAUJO',
+                    t: 'SOCI N° 1 • ARGILERS',
+                    p: '687 932 335',
+                    e: 'd.araujots@hotmail.com'
+                };
+
+                if (hash && hash.includes('v=')) {
+                    const base64 = hash.split('v=')[1];
+                    const decoded = safeAtob(base64);
+                    if (decoded) data = JSON.parse(decoded);
+                }
+
+                document.getElementById('ui-title').innerText = data.t || 'SOCIO';
+                document.getElementById('ui-name').innerHTML = (data.n || '') + '<br>' + (data.a || '');
+                document.getElementById('ui-tel').innerText = data.p || '-';
+                document.getElementById('ui-email').innerText = data.e || '-';
+                document.getElementById('ui-call').href = 'tel:' + (data.p ? data.p.replace(/\s/g, '') : '');
+                document.getElementById('ui-mail').href = 'mailto:' + (data.e || '');
+                
+            } catch (e) {
+                console.error("Error loading card data", e);
+            }
+        }
+        window.onhashchange = initCard;
+        window.onload = initCard;
+    </script>
 </body>
 </html>
